@@ -14,7 +14,48 @@ services:
     ports:
       - "5432:5432"
 
-# TODO добавить сервисы
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 15s
+      timeout: 15s
+      retries: 10
+
+  reservation_service:
+    build: src/reservation
+    container_name: reservation_service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8070:8070"
+
+  rating_service:
+    build: src/rating
+    container_name: rating_service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8050:8050"
+
+  library_service:
+    build: src/library
+    container_name: library_service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8060:8060"
+
+  gateway_service:
+    build: src/gateway
+    container_name: gateway_service
+    depends_on:
+      - reservation_service
+      - rating_service
+      - library_service
+    ports:
+      - "8080:8080"
 
 volumes:
   db-data:

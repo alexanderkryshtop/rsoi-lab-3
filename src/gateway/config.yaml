@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+services:
+  - library:
+      hostname: library_service
+      port: 8060
+  - rating:
+      hostname: rating_service
+      port: 8050
+  - reservation:
+      hostname: reservation_service
+      port: 8070

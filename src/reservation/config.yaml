@@ -1,0 +1,9 @@
+server:
+  port: 8070
+
+postgres:
+  username: postgres
+  password: postgres
+  database: reservations
+  port: 5432
+  host: postgres
