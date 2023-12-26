@@ -41,6 +41,6 @@ def increase_rating():
     json_body = request.get_json()
     count = json_body["count"]
 
-    user_stars_count = rating_service.change_star_count(username, count)
+    user_stars_count = rating_service.increase_star_count(username, count)
     response = {"stars": user_stars_count}
     return response, 200
