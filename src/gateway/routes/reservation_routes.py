@@ -16,6 +16,8 @@ def take_book_in_library():
     till_date = json_body["tillDate"]
 
     response, status_code = ReservationService.reservation_process_create(username, book_uid, library_uid, till_date)
+    if status_code == 503 and response == "Bonus Service unavailable":
+        return jsonify({"message": "Bonus Service unavailable"}), 503
 
     return jsonify(response), status_code
 

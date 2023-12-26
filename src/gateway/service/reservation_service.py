@@ -52,7 +52,7 @@ class ReservationService:
     def reservation_process_create(username: str, book_uid: str, library_uid: str, till_date: str) -> Tuple[Any, int]:
         rating, status_code = RatingService.get_user_rating(username)
         if status_code != 200:
-            return {"message": "rating error"}, status_code
+            return {"message": "Bonus Service unavailable"}, 503
 
         available_count, status_code = LibraryService.get_book_available_count(book_uid, library_uid)
         if available_count <= 0:
