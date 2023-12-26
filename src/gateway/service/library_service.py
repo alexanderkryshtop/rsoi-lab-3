@@ -1,4 +1,6 @@
 from typing import Tuple
+from typing import Any
+from typing import Optional
 
 import requests
 from flask import current_app
@@ -44,15 +46,21 @@ class LibraryService:
         return result.status_code
 
     @staticmethod
-    def get_book(book_uid: str) -> Tuple[dict, int]:
-        result = requests.get(
-            f"{current_app.config['library']}/libraries/book/{book_uid}",
-        )
+    def get_book(book_uid: str) -> Tuple[Any, int]:
+        try:
+            result = requests.get(
+                f"{current_app.config['library']}/libraries/book/{book_uid}",
+            )
+        except Exception:
+            return None, 500
         return result.json(), result.status_code
 
     @staticmethod
-    def get_library(library_uid: str) -> Tuple[dict, int]:
-        result = requests.get(
-            f"{current_app.config['library']}/libraries/{library_uid}",
-        )
+    def get_library(library_uid: str) -> Tuple[Any, int]:
+        try:
+            result = requests.get(
+                f"{current_app.config['library']}/libraries/{library_uid}",
+            )
+        except Exception:
+            return None, 500
         return result.json(), result.status_code

@@ -133,8 +133,8 @@ class ReservationService:
                 "status": reservation["status"],
                 "startDate": reservation["startDate"],
                 "tillDate": reservation["endDate"],
-                "book": book,
-                "library": library
+                "book": book or book_uid,
+                "library": library or library_uid
             })
 
         return res, result.status_code
