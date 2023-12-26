@@ -13,7 +13,7 @@ def get_rating():
     username = request.headers.get("X-User-Name")
     rating, status_code = rating_service.get_user_rating(username)
     if status_code == 503:
-        return jsonify({"message": "Bonus service unavailable"}), 503
+        return jsonify({"message": "Bonus Service unavailable"}), 503
     return jsonify({"stars": rating}), status_code
 
 
