@@ -45,6 +45,11 @@ def get_all_reservations():
     return jsonify([reservation.to_dict() for reservation in reservations])
 
 
+@reservation_app.route("/<reservation_uid>/delete", methods=["GET"])
+def delete_reservation():
+    pass
+
+
 @reservation_app.route("/rented")
 def get_rented_reservations_count():
     username = request.headers.get("X-User-Name")

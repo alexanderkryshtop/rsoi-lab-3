@@ -3,9 +3,10 @@ from typing import Tuple, Any, Optional
 
 import requests
 from flask import current_app
+
+from request_queue import Queue
 from service.library_service import LibraryService
 from service.rating_service import RatingService
-from request_queue import Queue
 
 
 class ReservationService:
@@ -31,6 +32,15 @@ class ReservationService:
 
         json_data = result.json()
         return json_data, result.status_code
+
+    @staticmethod
+    def _delete_reservation(reservation_uid):
+        url = f"{current_app.config['reservation']}/reservations/{reservation_uid}/delete"
+        try:
+            result = requests.get(url)
+        except Exception:
+            return 503
+        return 200
 
     @staticmethod
     def _update_reservation(reservation_uid: str, current_date: str) -> int:
@@ -72,8 +82,11 @@ class ReservationService:
         reservation, status_code = ReservationService._create_reservation(username, book_uid, library_uid, till_date)
         status_code = LibraryService.checkout_book(book_uid, library_uid)
 
-        book, status_code = LibraryService.get_book(book_uid)
-        library, status_code = LibraryService.get_library(library_uid)
+        book, book_status_code = LibraryService.get_book(book_uid)
+        library, library_status_code = LibraryService.get_library(library_uid)
+
+        if status_code != 200 or book_status_code != 200 or library_status_code != 200:
+            ReservationService._delete_reservation(reservation["reservationUid"])
 
         result = {
             "reservationUid": reservation["reservationUid"],
@@ -129,7 +142,8 @@ class ReservationService:
 
         _, status_code = RatingService.increase_user_rating(username, increase - decrease)
         if status_code != 200:
-            Queue.enqueue(f"{current_app.config['rating']}/rating/increase", requests.post, {"X-User-Name": username}, data={"count": increase - decrease})
+            Queue.enqueue(f"{current_app.config['rating']}/rating/increase", requests.post, {"X-User-Name": username},
+                          data={"count": increase - decrease})
         return None, 204
 
     @staticmethod
