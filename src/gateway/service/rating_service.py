@@ -32,3 +32,17 @@ class RatingService:
         except Exception:
             return None, 503
         return json_data["stars"], result.status_code
+
+    @staticmethod
+    def increase_user_rating(username: str, increase_amount: int) -> Tuple[Any, int]:
+        try:
+            json_body = {"count": increase_amount}
+            result = requests.post(
+                f"{current_app.config['rating']}/rating/increase",
+                headers={"X-User-Name": username},
+                json=json_body
+            )
+            json_data = result.json()
+        except Exception:
+            return None, 503
+        return json_data["stars"], result.status_code

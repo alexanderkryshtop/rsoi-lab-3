@@ -25,3 +25,7 @@ class RatingService:
         ratingModel.stars = new_rating
         RatingModel.query.session.commit()
         return ratingModel.stars
+
+    def increase_star_count(self, username: str, increase_amount: int) -> Optional[int]:
+        old_value = self.get_star_count(username)
+        return self.change_star_count(username, old_value + increase_amount)

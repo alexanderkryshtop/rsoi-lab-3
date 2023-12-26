@@ -34,7 +34,7 @@ class Queue:
     _background_worker: Thread = None
 
     @staticmethod
-    def push(url: str, http_method, headers={}, data={}, params=None, timeout=10, repeat_num=0):
+    def enqueue(url: str, http_method, headers={}, data={}, params=None, timeout=10, repeat_num=0):
         resp = requests.Response()
         resp.status_code = 503
         if repeat_num > 0:
@@ -52,11 +52,11 @@ class Queue:
         Queue._request_queue[url + http_method.__name__] = Request(url=url, http_method=http_method, headers=headers,
                                                                    data=data, timeout=timeout)
         if Queue._background_worker is None:
-            Queue._background_worker = Thread(target=Queue._send_requests_in_queue)
+            Queue._background_worker = Thread(target=Queue._spawn_threads)
             Queue._background_worker.start()
 
     @staticmethod
-    def _send_requests_in_queue():
+    def _spawn_threads():
         while len(Queue._request_queue.keys()) > 0:
             for req_key in Queue._request_queue.keys():
                 Thread(target=Queue._send_request, args=(req_key,)).start()

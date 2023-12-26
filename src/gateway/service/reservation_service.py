@@ -105,7 +105,7 @@ class ReservationService:
         library_uid = reservation["libraryUid"]
         status_code = LibraryService.return_book(book_uid, library_uid)
         if status_code == 503:
-            Queue.push(f"{current_app.config['library']}/libraries/book/return", requests.post, data={
+            Queue.enqueue(f"{current_app.config['library']}/libraries/book/return", requests.post, data={
                 "bookUid": book_uid, "libraryUid": library_uid,
             })
 
@@ -126,18 +126,9 @@ class ReservationService:
         if not decreased:
             increase = 1
 
-        rating, status_code = RatingService.get_user_rating(username)
+        _, status_code = RatingService.increase_user_rating(username, increase - decrease)
         if status_code == 503:
-            resp = Queue.push(f"{current_app.config['rating']}/rating", requests.get, {"X-User-Name": username})
-
-        if rating:
-            _, status_code = RatingService.update_user_rating(username, rating - decrease + increase)
-            if status_code == 503:
-                Queue.push(
-                    f"{current_app.config['rating']}/rating/change",
-                    http_method=requests.post, headers={"X-User-Name": username},
-                    data={"count": rating - decrease + increase}
-                )
+            Queue.enqueue(f"{current_app.config['rating']}/rating", requests.get, {"X-User-Name": username})
         return None, 204
 
     @staticmethod
