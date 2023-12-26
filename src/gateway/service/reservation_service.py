@@ -7,6 +7,7 @@ from service.library_service import LibraryService
 from service.rating_service import RatingService
 from request_queue import Queue
 
+
 class ReservationService:
 
     @staticmethod
