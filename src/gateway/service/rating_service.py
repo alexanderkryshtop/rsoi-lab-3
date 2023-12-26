@@ -1,4 +1,5 @@
 from typing import Tuple
+from typing import Any
 
 import requests
 from flask import current_app
@@ -7,12 +8,15 @@ from flask import current_app
 class RatingService:
 
     @staticmethod
-    def get_user_rating(username: str) -> Tuple[int, int]:
-        result = requests.get(
-            f"{current_app.config['rating']}/rating",
-            headers={"X-User-Name": username}
-        )
-        json_data = result.json()
+    def get_user_rating(username: str) -> Tuple[Any, int]:
+        try:
+            result = requests.get(
+                f"{current_app.config['rating']}/rating",
+                headers={"X-User-Name": username}
+            )
+            json_data = result.json()
+        except Exception:
+            return None, 503
         return json_data["stars"], result.status_code
 
     @staticmethod
