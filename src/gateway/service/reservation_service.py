@@ -127,8 +127,8 @@ class ReservationService:
             increase = 1
 
         _, status_code = RatingService.increase_user_rating(username, increase - decrease)
-        if status_code == 503:
-            Queue.enqueue(f"{current_app.config['rating']}/rating", requests.get, {"X-User-Name": username})
+        if status_code != 200:
+            Queue.enqueue(f"{current_app.config['rating']}/rating/increase", requests.get, {"X-User-Name": username}, data={"count": increase - decrease})
         return None, 204
 
     @staticmethod
