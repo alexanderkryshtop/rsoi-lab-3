@@ -31,6 +31,9 @@ def return_book_to_library(reservation_uid: str):
     current_date = json_body["date"]
 
     response, status_code = ReservationService.reservation_process_return(reservation_uid, username, condition, current_date)
+    if status_code == 503:
+        return jsonify({"message": "Reservation Service unavailable"}), 503
+
     return jsonify(response), status_code
 
 

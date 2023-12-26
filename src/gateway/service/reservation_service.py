@@ -5,7 +5,7 @@ import requests
 from flask import current_app
 from service.library_service import LibraryService
 from service.rating_service import RatingService
-
+from request_queue import Queue
 
 class ReservationService:
 
@@ -33,20 +33,26 @@ class ReservationService:
 
     @staticmethod
     def _update_reservation(reservation_uid: str, current_date: str) -> int:
-        json_body = {
-            "date": current_date
-        }
-        url = f"{current_app.config['reservation']}/reservations/{reservation_uid}/return"
-        result = requests.post(url, json=json_body)
-        return result.status_code
+        try:
+            json_body = {
+                "date": current_date
+            }
+            url = f"{current_app.config['reservation']}/reservations/{reservation_uid}/return"
+            result = requests.post(url, json=json_body)
+            return result.status_code
+        except Exception:
+            return 503
 
     @staticmethod
-    def _get_reservation(reservation_uid: str) -> tuple[dict, int]:
-        url = f"{current_app.config['reservation']}/reservations/{reservation_uid}"
-        result = requests.get(url)
+    def _get_reservation(reservation_uid: str) -> tuple[Any, int]:
+        try:
+            url = f"{current_app.config['reservation']}/reservations/{reservation_uid}"
+            result = requests.get(url)
 
-        json_data = result.json()
-        return json_data, result.status_code
+            json_data = result.json()
+            return json_data, result.status_code
+        except Exception:
+            return None, 503
 
     @staticmethod
     def reservation_process_create(username: str, book_uid: str, library_uid: str, till_date: str) -> Tuple[Any, int]:
@@ -88,8 +94,21 @@ class ReservationService:
             current_date: str
     ) -> Tuple[Optional[dict], int]:
         reservation, status_code = ReservationService._get_reservation(reservation_uid)
+        if status_code == 503:
+            return None, 503
+
+        status_code = ReservationService._update_reservation(reservation_uid, current_date)
+        if status_code == 503:
+            return None, 503
+
         book_uid = reservation["bookUid"]
         library_uid = reservation["libraryUid"]
+        status_code = LibraryService.return_book(book_uid, library_uid)
+        if status_code == 503:
+            Queue.push(f"{current_app.config['library']}/libraries/book/return", requests.post, data={
+                "bookUid": book_uid, "libraryUid": library_uid,
+            })
+
         book, status_code = LibraryService.get_book(book_uid)
 
         required_date = date.fromisoformat(reservation["endDate"])
@@ -108,10 +127,10 @@ class ReservationService:
             increase = 1
 
         rating, status_code = RatingService.get_user_rating(username)
-        updated_rating, status_code = RatingService.update_user_rating(username, rating - decrease + increase)
+        if status_code == 503:
+            Queue.push(f"{current_app.config['rating']}/rating", requests.get, {"X-User-Name": username})
 
-        ReservationService._update_reservation(reservation_uid, current_date)
-        LibraryService.return_book(book_uid, library_uid)
+        _, status_code = RatingService.update_user_rating(username, rating - decrease + increase)
         return None, 204
 
     @staticmethod
