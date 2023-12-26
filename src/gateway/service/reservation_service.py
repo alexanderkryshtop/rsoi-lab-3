@@ -128,9 +128,16 @@ class ReservationService:
 
         rating, status_code = RatingService.get_user_rating(username)
         if status_code == 503:
-            Queue.push(f"{current_app.config['rating']}/rating", requests.get, {"X-User-Name": username})
+            resp = Queue.push(f"{current_app.config['rating']}/rating", requests.get, {"X-User-Name": username})
 
-        _, status_code = RatingService.update_user_rating(username, rating - decrease + increase)
+        if rating:
+            _, status_code = RatingService.update_user_rating(username, rating - decrease + increase)
+            if status_code == 503:
+                Queue.push(
+                    f"{current_app.config['rating']}/rating/change",
+                    http_method=requests.post, headers={"X-User-Name": username},
+                    data={"count": rating - decrease + increase}
+                )
         return None, 204
 
     @staticmethod
