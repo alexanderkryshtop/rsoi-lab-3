@@ -38,8 +38,8 @@ jobs:
         run: ./scripts/test-script.sh
         env:
           VARIANT: v4
-          SERVICE_NAME: gateway_service
-          PORT_NUMBER: 8080
+          SERVICE_NAME: rating_service
+          PORT_NUMBER: 8050
 
       - uses: education/autograding@v1
         id: autograder
